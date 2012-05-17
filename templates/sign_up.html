@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link type="text/css" rel="stylesheet" href="/style/blog.css" />
+    <title>CS 253 Blog &ndash; Sign Up</title>
+</head>
+<body>
+    <style type="text/css">
+        /*.
+        label {text-align: right}
+        */
+        p .error {font-size: 20px; padding: 2px; margin: 2px;}
+        input .error {color: red; border: red;}
+        #left {float: left; margin-bottom: 100%;}
+        #left p {text-align: right; font-size: 20px; padding: 2px; margin: 2px;}
+        input {font-size: 20px;}
+    </style>
+    <h1 class="main-title"><a href="/">CS 253 Blog &ndash; Sign Up</a></h1>
+    <div id="content">
+
+    {% if not newUser %}
+        <h2>Create a New Account</h2>
+        
+        <div id="left">
+            <p>Username:</p>
+            <p>Password:</p>
+            <p>Verify Password:</p>
+            <p>Email:</p>
+            {% if error_username or error_password or error_verify or error_email%}
+                <p class="error">Error:</p>
+            {% endif %}
+        </div>
+        <form method="post">
+            <input type="text" class="{% if error_username %}error{% endif %}" name="username" value="{{ username }}"><br>
+            <input type="password" class="{% if error_password %}error{% endif %}" name="password" value=""><br>
+            <input type="password" class="{% if error_verify %}error{% endif %}" name="verify" value=""><br>
+            <input type="text" class="{% if error_email %}error{% endif %}" name="email" value="{{ email }}">
+            
+            {% for error in error_username, error_password, error_verify, error_email %}
+                {% if error %}
+                    <p class="error">{{ error }}</p>
+                {% endif %}
+            {% endfor%}
+            <br>
+            <input type="submit">
+        </form>
+    {% endif %} <!-- newPost -->
+    
+    {% if blogPost %}
+        <div class="post">
+            <div class="post-heading">
+                <div class="post-title">{{ subject }}</a></div>
+                <div class="post-date">{{ created.strftime('%B %d, %Y') }}</div>
+            </div>
+            <div class="post-content">{{ content }}</div>
+        </div>
+        <p><a href="/blog">Return home</a></p>
+    {% endif %} <!-- blogPost -->
+
+    </div><!-- #content -->
+</body>
+</html>

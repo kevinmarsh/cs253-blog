@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link type="text/css" rel="stylesheet" href="/style/blog.css" />
+    <title>CS 253 Blog{% if pageName %} &ndash; {{ pageName }}{% endif %}</title>
+    <style type="text/css">
+        {% block style %}
+        {% endblock %}
+    </style>
+</head>
+<body>
+    <h1 class="main-title"><a href="/">CS 253 Blog</a></h1>
+    <div id="content">
+        {% block content %}
+        {% endblock %}
+    </div><!-- #content -->
+</body>
+</html>
