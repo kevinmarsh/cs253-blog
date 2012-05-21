@@ -41,7 +41,6 @@ class SignUp(webapp2.RequestHandler):
         user_verify = self.request.get('verify')
         user_email = self.request.get('email')
 
-#        if not valid_username(user_username) or not valid_password(user_password) or not valid_verify(user_verify) or not valid_email(user_email):
         if not valid_username(user_username) or not valid_password(user_password) or user_password != user_verify or not valid_email(user_email):
             if not valid_username(user_username) or not user_username:
                 error_username = 'That\'s not a valid username.'

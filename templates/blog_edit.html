@@ -1,0 +1,35 @@
+{% extends "blog_template.html" %}
+
+{% block title %}
+    CS 253 Blog - Edit {{ subject }}
+{% endblock %}
+
+{% block content %}
+
+        <form method="post">
+            <label>
+                <div>Subject<span class="error">{{ errorSubject }}</span></div>
+                <input type="text" name="subject" value="{{ subject }}">
+            </label>
+            
+            <label>
+                <div>Content<span class="error">{{ errorContent }}</span></div>
+                <textarea name="content">{{ content }}</textarea>
+            </label>
+
+            <label>
+                <div>Date<span class="error">{{ errorDate }}</span></div>
+                <input type="text" name="date" value="{{ created }}">
+            </label>
+            
+            <label>
+                <div>URL<span class="error">{{ errorURL }}</span></div>
+                <input type="text" name="url" value="{{ url }}">
+            </label>
+
+            <input type="submit">
+        </form>
+        
+        <p><a href="/blog/delete/{{ postKey }}">Delete post</a></p>
+
+{% endblock %}

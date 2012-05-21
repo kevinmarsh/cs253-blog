@@ -1,65 +1,30 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <link type="text/css" rel="stylesheet" href="/style/blog.css" />
-    <title>{{ blogTitle }}</title>
-</head>
-<body>
-    <h1 class="main-title"><a href="/blog">CS 253 Blog</a></h1>
-    <div class="login">
-    {% if cookie %}
-        <a href="/logout">Logout</a>
-    {% else %}
-        <a href="/signup">Sign Up</a> |
-        <a href="/login">Login</a>
-    {% endif %}
-    </div>
-    <div style="clear:both"></div>
-    <div id="content">
+{% extends "blog_template.html" %}
 
-    {% if homepage %}
-        <p><a href="blog/newpost">Create a new blog post</a></p>
+{% block title %}
+    CS 253 Blog - Homepage
+{% endblock %}
+
+{% block content %}
+
+        <div id="create">
+            <p><a href="blog/newpost">[ Create a new blog post ]</a></p>
+        </div>
+        <div class="clear"></div>
     
         {% for post in blogDB %}
             <div class="post">
                 <div class="post-heading">
-                    <div class="post-title"><a href="blog/post/{{ post.key().id() }}">{{ post.title }}</a></div>
-                    <div class="post-date">{{ post.created.strftime('%B %d, %Y') }}</div>
+                    <div class="post-title">
+                        <a href="blog/post/{{ post.url }}">{{ post.title }}</a>
+                    </div>
+                    <div class="post-date">
+                        {{ post.created.strftime('%B %d, %Y') }}
+                    </div>
                 </div>
-                <div class="post-content"><pre>{{ post.body }}</pre></div>
+                <div class="post-content">
+                    <pre>{{ post.body }}</pre>
+                </div>
             </div>
         {% endfor %}
-    {% endif %} <!-- homepage -->
-    
-    {% if newPost %}
-        <h2>Create a New Post</h2>
-            
-        <form method="post">
-            <label>
-                <div>Subject<span class="error">{{ errorSubject }}</span></div>
-                <input type="text" name="subject" value="{{ subject }}">
-            </label>
-            
-            <label>
-                <div>Content<span class="error">{{ errorContent }}</span></div>
-                <textarea name="content">{{ content }}</textarea>
-            </label>
-            
-            <input type="submit">
-        </form>
-    {% endif %} <!-- newPost -->
-    
-    {% if blogPost %}
-        <div class="post">
-            <div class="post-heading">
-                <div class="post-title">{{ subject }}</a></div>
-                <div class="post-date">{{ created.strftime('%B %d, %Y') }}</div>
-            </div>
-            <div class="post-content">{{ content }}</div>
-        </div>
-        <p><a href="/blog">Return home</a></p>
-    {% endif %} <!-- blogPost -->
 
-    </div><!-- #content -->
-</body>
-</html>
+{% endblock %}

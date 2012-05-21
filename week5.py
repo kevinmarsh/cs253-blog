@@ -2,42 +2,45 @@
 #/opt/google_appengine/appcfg.py update ~/workspace/Udacity/src
 
 from ascii_chan_map import ASCII
-from blog import Blog, NewPost, UniquePost
+from blog import Blog, NewPost, UniquePost, EditPost, EditRedirect, DeletePost
 from login import SignUp, Login, Welcome, Logout
-import cgi
-import webapp2
+from jsonParse import JsonUniquePost, JsonBlog
 
-def escape_html(s):
-    return cgi.escape(s, quote = True)
+import webapp2
 
 class MainPage(webapp2.RequestHandler):
     def get(self):
         self.response.out.write(homeHTML)
-        
-class JSON(webapp2.RequestHandler):
-    def get(self):
-        self.response.out.write("hello json")
 
 webPages = [('/', MainPage), 
             ('/ascii', ASCII),
+            ('/blog/post/(.+).json', JsonUniquePost), 
+            ('/blog/.json', JsonBlog), 
             ('/blog', Blog),
+            ('/blog/', Blog), #duplicate
             ('/blog/newpost', NewPost),
-            ('/blog/post/([0-9]+)', UniquePost), 
-            ('/signup', SignUp),
-            ('/login', Login),
-            ('/logout', Logout),
-            ('/welcome', Welcome),
-            ('/blog/post/([0-9]+)(.json)$', JSON), 
-            ('/blog.json', JSON)]
+            ('/blog/post/(.+)', UniquePost), 
+            ('/blog/edit/([0-9]+)', EditPost), 
+            ('/blog/delete/([0-9]+)', DeletePost), 
+            ('/blog/edit/(.+)', EditRedirect), 
+            ('/blog/signup', SignUp),
+            ('/blog/login', Login),
+            ('/blog/logout', Logout),
+            ('/blog/welcome', Welcome)]
  
-noLinks = ['/', '/welcome', '/blog/newpost', '/blog/post/([0-9]+)']
+noLinks = ['/', 
+           '/blog/', 
+           '/blog/welcome', 
+           '/blog/newpost', 
+           '/blog.json', 
+           '/blog/post/(.+).json', 
+           '/blog/edit/(.+)', 
+           '/blog/post/(.+)'] #links to hide from homepage
 
 urls = ''
 for page in webPages:
     if page[0] not in noLinks:
-    #    continue
-    #else:
-        name = escape_html(str(page[1]))
+        name = str(page[1])
         urls += '<li><a href="%(path)s">%(name)s</a></li>\n' % {'path': page[0], 
                                                                 'name': name[name.index('.') + 1 : name.find('&gt;') - 1]}
 
