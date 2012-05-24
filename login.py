@@ -57,8 +57,9 @@ class SignUp(Handler):
         user_email = self.request.get('email')
         error_username = ''
         
-        dubName = db.GqlQuery('SELECT * FROM User WHERE username = :1', user_username)
-        if user_username == dubName[0].username:
+        dubName = list(db.GqlQuery('SELECT * FROM User WHERE username = :1', user_username))
+        
+        if dubName and user_username == dubName[0].username:
             error_username = 'That name\'s already been taken.'
 
         if error_username != '' or not valid_username(user_username) or not valid_password(user_password) or user_password != user_verify or not valid_email(user_email):
@@ -109,9 +110,9 @@ class Login(Handler):
         if self.request.cookies.get('username', '') != '':
             self.redirect('/blog/welcome')
         
-        user = db.GqlQuery('SELECT * FROM User WHERE username = :1', user_username)
+        user = list(db.GqlQuery('SELECT * FROM User WHERE username = :1', user_username))
         
-        if valid_pw(user[0].username, user_password, user[0].password):
+        if user and valid_pw(user[0].username, user_password, user[0].password):
             self.response.headers.add_header('Set-Cookie', 'username=%s; Path=/' % make_secure_val(str(user_username)))
             self.redirect('/blog/welcome')
         else:

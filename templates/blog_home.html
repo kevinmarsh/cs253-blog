@@ -11,7 +11,7 @@
         </div>
         <div class="clear"></div>
     
-        {% for post in blogDB %}
+        {% for post in blogPosts %}
             <div class="post">
                 <div class="post-heading">
                     <div class="post-title">
@@ -27,4 +27,5 @@
             </div>
         {% endfor %}
 
+        <p class="cached">Queried {{ query }} seconds ago.</p>
 {% endblock %}

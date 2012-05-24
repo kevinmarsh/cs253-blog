@@ -1,5 +1,5 @@
 application: backburnerdev
-version: 5
+version: 6
 runtime: python27
 api_version: 1
 threadsafe: true
@@ -13,4 +13,5 @@ handlers:
   static_dir: style
 
 - url: /.*
-  script: week5.app
+  script: week6.app
+  secure: always

@@ -5,8 +5,10 @@ import os
 import string
 import re
 import datetime
+import logging
 from jinjahandler import Handler
 from google.appengine.ext import db
+from google.appengine.api import memcache
 
 jinja_environment = jinja2.Environment(autoescape=True,
     loader=jinja2.FileSystemLoader(os.path.join(os.path.dirname(__file__), 'templates')))
@@ -20,6 +22,7 @@ def titleToUrl(title):
     return '-'.join([word for word in title if word not in STOPWORDS]) #checks word isn't a stop word then joins with a dash
 
 class BlogPost(db.Model):
+    "GAE db entity for blog posts"
     #author
     #tags
     title = db.StringProperty(required = True)
@@ -31,25 +34,12 @@ class BlogPost(db.Model):
 class NewPost(Handler):
     "creates a new blog post, ensures no duplicate urls"
     def get(self):
-        template = jinja_environment.get_template('blog_create.html')
-        self.response.out.write(template.render({'blogTitle': 'CS 253 Blog', 
-                                                 'subject': '', 
-                                                 'content': '', 
-                                                 'created': '', 
-                                                 'errorSubject': '', 
-                                                 'errorContent': ''}))
-    '''
-    def get(self):
-        vals = {'blogTitle': 'CS 253 Blog', 
-                'newPost': 'newPost', 
-                'subject': '', 
-                'content': '', 
-                'created': '', 
-                'errorSubject': '', 
-                'errorContent': ''}
-        self.render('blog_home.html', vals)
-    '''
-
+        self.render('blog_create.html', 
+                    subject='', 
+                    content='', 
+                    created='', 
+                    errorSubject='', 
+                    errorContent='')
     
     def post(self):
         subject = self.request.get('subject')
@@ -58,93 +48,93 @@ class NewPost(Handler):
         if subject and content:
             titleUrl = titleToUrl(subject)
             if titleUrl.isdigit():
-                titleUrl += '-a'
+                titleUrl += '-num' #to prevent urls that are only numbers, breaks the edit redirect
 
             dbTitle = list(db.GqlQuery('SELECT * FROM BlogPost '
-                                  'WHERE url = :1', titleUrl))
+                                       'WHERE url = :1', titleUrl)) #use list to only hit the db once
             if len(dbTitle) > 0:
-                if dbTitle[0].title == titleUrl: #doesn't catch double duplicate names
+                if dbTitle[0].title == titleUrl: #prevents duplicate urls by adding date to end of url
                     titleUrl += '-' + datetime.datetime.now().strftime('%Y-%m-%d-%H%M%S')
 
             bp = BlogPost(title = subject, body = content, url = titleUrl)
-            #bp = BlogPost(title = subject, body = str(dbTitle[0]), url = titleUrl)
-            bp.put()
-            
+            bp.put() #commit the blog post to the db
+            recent_posts(True) #reset the cache
             self.redirect('/blog/post/%s' % titleUrl)
         else:
-            if not subject:
-                errorSubject = ' - Please add a subject'
-            else:
-                errorSubject = ''
-            if not content:
-                errorContent = ' - Please add some content'
-            else:
-                errorContent = ''
+            errorSubject = ' - Please add a subject' if not subject else ''
+            errorContent = ' - Please add some content' if not content else ''
             
-            template = jinja_environment.get_template('blog_create.html')
-            self.response.out.write(template.render({'blogTitle': 'CS 253 Blog',
-                                                     'subject': subject,
-                                                     'content': content,
-                                                     'errorSubject': errorSubject, 
-                                                     'errorContent': errorContent}))
+            self.render('blog_create.html', 
+                        subject=subject,
+                        content=content,
+                        errorSubject=errorSubject, 
+                        errorContent=errorContent)
 
-class Blog(webapp2.RequestHandler):
+def recent_posts(update = False):
+    key = 'recent'
+    posts = memcache.get(key)
+    if update or posts is None:
+        logging.error("db query")
+        posts = list(db.GqlQuery("SELECT * "
+                                 "FROM BlogPost "
+                                 "ORDER BY created DESC "
+                                 "LIMIT 10"))
+        memcache.set(key, [posts, datetime.datetime.now()])
+    return posts
+
+def post_cache(slug, update = False):
+    key = slug
+    post = memcache.get(key)
+    if update or post is None:
+        logging.error("db query")
+        post = list(db.GqlQuery("SELECT * "
+                                "FROM BlogPost "
+                                "WHERE url = :1", slug))
+        post = [post[0], datetime.datetime.now()]
+        memcache.set(key, post)
+    return post
+
+class Blog(Handler):
     #add multi pages (eg. 10 per page)
     def get(self):
-        template_values = {'blogTitle': 'CS 253 Blog',
-                           'blogDB': list(db.GqlQuery('SELECT * FROM BlogPost '
-                                                      'ORDER BY created DESC '
-                                                      'LIMIT 10')),
-                           'cookie': self.request.cookies.get('username', '')}
-        template = jinja_environment.get_template('blog_home.html')
-        self.response.out.write(template.render(template_values))
+        blogPosts = recent_posts()
+        query = datetime.datetime.now() - blogPosts[1]
+        self.render('blog_home.html', 
+                    cookie=self.request.cookies.get('username', ''), 
+                    blogPosts=blogPosts[0], 
+                    query=query.seconds)
 
-class UniquePost(webapp2.RequestHandler):
+class UniquePost(Handler):
     def get(self, resource):
         urlTitle = urllib.unquote(resource)
-        postDB = list(db.GqlQuery('SELECT * FROM BlogPost '
-                            'WHERE url = :1', urlTitle))
-        if len(postDB) < 1:
-            self.response.out.write("sorry that post does not exist")
+        postDB = post_cache(urlTitle)
+
+        if postDB[0]: #if valid url
+            query = datetime.datetime.now() - postDB[1]
+            self.render('blog_post.html', 
+                        subject=postDB[0].title, 
+                        content=postDB[0].body, 
+                        created=postDB[0].created, 
+                        cookie=self.request.cookies.get('username', ''), 
+                        query=query.seconds)
         else:
-            subject = postDB[0].title
-            content = postDB[0].body
-            created = postDB[0].created
-            cookie = self.request.cookies.get('username', '')
-    
-            template_values = {'blogTitle': 'CS 253 Blog',
-                               'subject': subject,
-                               'content': content,
-                               'created': created,
-                               'cookie': cookie}
-    
-            template = jinja_environment.get_template('blog_post.html')
-            self.response.out.write(template.render(template_values))
-class EditPost(webapp2.RequestHandler):
+            self.write("sorry that post does not exist")
+
+class EditPost(Handler):
     def get(self, resource):
         
         urlKey = urllib.unquote(resource)
         postKey = BlogPost.get_by_id(int(urlKey))
         
-        if not postKey:
+        if postKey:
+            self.render('blog_edit.html', 
+                        subject=postKey.title,
+                        content=postKey.body,
+                        created=postKey.created,
+                        url=postKey.url, 
+                        postKey=urlKey)
+        else:
             self.response.out.write("sorry that post does not exist")
-        
-        subject = postKey.title
-        content = postKey.body
-        date = postKey.created
-        url = postKey.url
-        
-        template = jinja_environment.get_template('blog_edit.html')
-        self.response.out.write(template.render({'blogTitle': 'CS 253 Blog',
-                                                 'subject': subject,
-                                                 'content': content,
-                                                 'created': date,
-                                                 'url': url,
-                                                 'errorSubject': '',
-                                                 'errorContent': '',
-                                                 'errorDate': '',
-                                                 'errorURL': '', 
-                                                 'postKey': urlKey}))
 
     
     def post(self, resource):
@@ -164,7 +154,7 @@ class EditPost(webapp2.RequestHandler):
             postKey.url = url
             
             postKey.put()
-            
+            post_cache(url, True)
             self.redirect('/blog/post/%s' % url)
         else:
             if not subject:
@@ -216,3 +206,8 @@ class DeletePost(webapp2.RequestHandler):
             template = jinja_environment.get_template('blog_delete.html')
             self.response.out.write(template.render({'blogTitle': 'CS 253 Blog',
                                                      'postKey': urlKey}))
+            
+class FlushCache(Handler):
+    def get(self):
+        recent_posts(True)
+        self.redirect('/blog')

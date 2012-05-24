@@ -105,6 +105,12 @@ input[type=submit] {
     margin-bottom: 12px;
 }
 
+.cached {
+    text-align: right;
+    margin: 12px 0 -12px;
+    font-size: 75%;
+}
+
 #footer {
     margin-top: 12px;
 }

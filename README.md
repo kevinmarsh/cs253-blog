@@ -3,7 +3,7 @@ CS 253 Blog
 
 Here's a blog that I'm in the process of building in [Udacity CS253](http://www.udacity.com/course/cs253). Lots still to do but I thought it'd be good to version control it with git and keep it open source. It's built in Python with Jinga2 as the framework, runs well on GAE.
 
-A working version is running on [Google App Engine](http://5.backburnerdev.appspot.com/blog)
+A working version is running on [Google App Engine](https://backburnerdev.appspot.com/blog)
 
 Upgrades from the example being used in class:
 * human readable urls
