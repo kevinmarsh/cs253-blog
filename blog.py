@@ -160,12 +160,11 @@ class EditPost(Handler):
             errorSubject = ' - Please add a subject' if not subject else ''
             errorContent = ' - Please add some content' if not content else ''
             
-            template = jinja_environment.get_template('blog_edit.html')
-            self.response.out.write(template.render({'blogTitle': 'CS 253 Blog',
-                                                     'subject': subject,
-                                                     'content': content,
-                                                     'errorSubject': errorSubject, 
-                                                     'errorContent': errorContent}))
+            self.render('blog_edit.html',
+                        subject=subject,
+                        content=content, 
+                        errorSubject=errorSubject,  
+                        errorContent=errorContent)
 
 class EditRedirect(webapp2.RequestHandler):
     def get(self, resource):
@@ -179,13 +178,11 @@ class EditRedirect(webapp2.RequestHandler):
         postKey = postDB[0].key().id()
         self.redirect('/blog/edit/%s' %postKey)
 
-class DeletePost(webapp2.RequestHandler):
+class DeletePost(Handler):
     def get(self, resource):
         urlKey = urllib.unquote(resource)
-
-        template = jinja_environment.get_template('blog_delete.html')
-        self.response.out.write(template.render({'blogTitle': 'CS 253 Blog',
-                                                 'postKey': urlKey}))
+        self.render('blog_delete.html',
+                    postKey=urlKey)
     
     def post(self, resource):
         deleteConfirm = self.request.get('delete')
@@ -197,9 +194,8 @@ class DeletePost(webapp2.RequestHandler):
             postKey.delete()
             self.response.out.write('Post was deleted')
         else:
-            template = jinja_environment.get_template('blog_delete.html')
-            self.response.out.write(template.render({'blogTitle': 'CS 253 Blog',
-                                                     'postKey': urlKey}))
+            self.render('blog_delete.html',
+                        postKey=urlKey)
             
 class FlushCache(Handler):
     def get(self):
