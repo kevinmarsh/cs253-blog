@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link type="text/css" rel="stylesheet" href="/style/blog.css" />
+    <title>{% block title %}CS 253 Blog{% endblock %}</title>
+</head>
+<body>
+    {% block header %}
+    <h1 class="main-title"><a href="/blog">CS 253 Blog</a></h1>
+    
+    <div class="login">
+    {% if cookie %}
+        <a href="/blog/logout">Logout</a>
+    {% else %}
+        <a href="/blog/signup">Sign Up</a> |
+        <a href="/blog/login">Login</a>
+    {% endif %}
+    </div>
+    
+    <div style="clear:both"></div>
+    {% endblock %}
+
+    <div id="content">
+        {% block content %}
+        {% endblock %}
+    </div><!-- #content -->
+    
+    {% block footer %}
+    <div id="footer">
+        <p><!--[if lte IE 8]><span style="filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=2); display: inline-block;"><![endif]--><span style="-webkit-transform: rotate(180deg); -moz-transform: rotate(180deg); -o-transform: rotate(180deg); -khtml-transform: rotate(180deg); -ms-transform: rotate(180deg); transform: rotate(180deg); display: inline-block;" title="Copyleft">&copy;</span><!--[if lte IE 8]></span><![endif]--> Copyleft 2012 by <a href="http://backburnerdev.co.uk/" target="_blank">Back Burner Dev</a>.</p>
+    </div>
+    {% endblock %}
+</body>
+</html>
