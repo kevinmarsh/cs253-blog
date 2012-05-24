@@ -157,14 +157,8 @@ class EditPost(Handler):
             post_cache(url, True)
             self.redirect('/blog/post/%s' % url)
         else:
-            if not subject:
-                errorSubject = ' - Please add a subject'
-            else:
-                errorSubject = ''
-            if not content:
-                errorContent = ' - Please add some content'
-            else:
-                errorContent = ''
+            errorSubject = ' - Please add a subject' if not subject else ''
+            errorContent = ' - Please add some content' if not content else ''
             
             template = jinja_environment.get_template('blog_edit.html')
             self.response.out.write(template.render({'blogTitle': 'CS 253 Blog',
